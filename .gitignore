@@ -1,0 +1,19 @@
+# Environments
+.env
+venv/
+env/
+__pycache__/
+*.pyc
+
+# IDEs
+.vscode/
+.idea/
+
+
+concepts.md
+
+# Logs and DB
+*.sqlite3
+*.db
+chroma/
+
