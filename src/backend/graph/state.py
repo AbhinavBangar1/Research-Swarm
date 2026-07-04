@@ -11,6 +11,9 @@ class ResearchState(TypedDict):
     sub_questions: List[str]
     current_question_idx: int
     
+    # Supervisor Routing
+    next_agent: str
+    
     # Searcher & Verifier outputs
     retrieved_contexts: List[str]
     
