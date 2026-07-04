@@ -2,7 +2,6 @@ import os
 from typing import Literal
 from pydantic import BaseModel, Field
 from langchain_core.prompts import ChatPromptTemplate
-from langchain_groq import ChatGroq
 
 from ..state import ResearchState
 
@@ -15,7 +14,6 @@ class SupervisorRoute(BaseModel):
 def supervisor_node(state: ResearchState):
     """
     The Supervisor Agent: Reads the global state and dynamically decides the next best action.
-    This is where the infinite loop bugs usually happen if the LLM gets confused!
     """
     query = state.get("original_query", "")
     sub_questions = state.get("sub_questions", [])
@@ -25,7 +23,7 @@ def supervisor_node(state: ResearchState):
     
     print("\n--- SUPERVISOR AGENT: Analyzing State ---")
     
-    # Hardcoded safety bounds (part of the 'ongoing' story where we fix infinite loops)
+    # Hardcoded safety bounds
     if not sub_questions:
         print("Supervisor bypassing LLM: Forcing Planner (No sub-questions exist)")
         return {"next_agent": "Planner"}
@@ -34,8 +32,9 @@ def supervisor_node(state: ResearchState):
         print("Supervisor bypassing LLM: Forcing Generator (All questions answered)")
         return {"next_agent": "Generator"}
 
-    # Initialize the LLM Router
-    llm = ChatGroq(model="llama3-70b-8192", temperature=0)
+    # Initialize the LLM Router via Factory
+    from ...llm.factory import LLMFactory
+    llm = LLMFactory.get_llm(temperature=0)
     router = llm.with_structured_output(SupervisorRoute)
     
     prompt = ChatPromptTemplate.from_messages([

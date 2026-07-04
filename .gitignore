@@ -16,3 +16,7 @@ docs/
 *.sqlite3
 *.db
 chroma/
+
+report_output.md
+
+run.py

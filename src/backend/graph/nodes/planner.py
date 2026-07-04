@@ -1,10 +1,9 @@
 import os
 from langchain_core.prompts import ChatPromptTemplate
-from langchain_groq import ChatGroq
 from pydantic import BaseModel, Field
 from typing import List
 
-from .state import ResearchState
+from ..state import ResearchState
 
 class Plan(BaseModel):
     """Schema for the Planner's structured output."""
@@ -18,12 +17,10 @@ def planner_node(state: ResearchState):
     """
     query = state.get("original_query", "")
     
-    print(f"--- PLANNER AGENT: Decomposing Query ---")
-    print(f"Query: {query}")
-
-    llm = ChatGroq(model="llama3-70b-8192", temperature=0)
+    # Initialize the LLM via Factory
+    from ...llm.factory import LLMFactory
+    llm = LLMFactory.get_llm(temperature=0)
     
-    # Bind the Pydantic schema so the LLM returns a guaranteed JSON structure
     structured_llm = llm.with_structured_output(Plan)
     
     prompt = ChatPromptTemplate.from_messages([
@@ -36,7 +33,6 @@ def planner_node(state: ResearchState):
         ("human", "Decompose the following research query into sub-questions: {query}")
     ])
     
-    # Create the LCEL chain
     chain = prompt | structured_llm
     
     # Execute the chain
@@ -44,7 +40,7 @@ def planner_node(state: ResearchState):
     
     print(f"Planner generated {len(result.sub_questions)} sub-questions.")
     
-    # Return the dictionary that will UPDATE the global LangGraph state
+
     return {
         "sub_questions": result.sub_questions,
         "current_question_idx": 0,
